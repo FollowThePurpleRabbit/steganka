@@ -1,0 +1,187 @@
+import java.awt.Color;
+import java.awt.FocusTraversalPolicy;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+public class SecretService {
+	
+	private String containerFilename = "C:/Users/Llina/Desktop/kiss/Images/IMG.bmp";
+	private String secretFilename = "C:/Users/Llina/Desktop/kiss/Images/SECRETIMG.bmp";
+	
+	private String resultFileName = "C:/Users/Llina/Desktop/kiss/Images/RESULTIMAGE1.bmp";
+	private String secretResultFileName = "C:/Users/Llina/Desktop/kiss/Images/SECRETRESULT1.bmp";
+	
+	private int[] key;
+	
+	private int secretHeight;
+	private int secretWidth;
+	
+	
+	private MyImage containerImage;
+	private MyImage secretImage;
+	
+	private MyImage postContainerImage;
+	private MyImage postSecretImage;
+	
+	
+	private Color[] containerPixels;
+	private Color[] secretPixels;
+	
+	private Color[] postContainerPixels;
+	private Color[] postSecretPixels;
+	
+	
+	
+	public void start() throws Exception {
+		
+		hideImage();
+		findImage();
+		
+	}
+	
+	
+	private void hideImage() throws Exception {
+		
+		containerImage = new MyImage(containerFilename);
+		secretImage = new MyImage(secretFilename);
+		
+		containerPixels = containerImage.getPixels();
+		secretPixels = secretImage.getPixels();
+		
+		secretHeight = secretImage.getHeight();
+		secretWidth = secretImage.getWidth();
+		
+		int maxSpace = (containerPixels.length / secretPixels.length)/3;
+		
+		if(maxSpace < 1) {
+			throw new Exception("Your secret image is too big/container image is too small");
+		}
+		
+		key = new int[secretPixels.length];
+		
+		
+		for(int i = 0; i < secretPixels.length; i++) {
+			
+			key[i] = (int)(Math.random() * maxSpace) + 1;
+			
+		}
+		 
+		System.out.println("Max: " + maxSpace);
+		
+		//for(int i = 0; i < secretPixels.length; i++) {
+		for(int i = 0; i < secretPixels.length; i++) {
+			
+			containerPixels[i * 3] = fillPixel(i * 3, 'r');
+			containerPixels[i * 3 + 1] = fillPixel(i*3+1, 'g');
+			containerPixels[i * 3 +2] = fillPixel(i*3+2, 'b');
+		}
+	
+		BufferedImage image = containerImage.getBufferedImage();
+		
+		postContainerPixels = containerPixels;
+		saveImage(containerPixels, image, resultFileName);
+		
+	}
+
+	
+	private Color fillPixel(int i, char ch) {
+		
+		int r = containerPixels[i].getRed();
+		int g = containerPixels[i].getGreen();
+		int b = containerPixels[i].getBlue();
+		
+		r = r & 252;
+		g = g & 252;
+		b = b & 252;
+		
+		int X = 0;
+		
+		switch(ch) {
+		case 'r':
+			X = secretPixels[i/3].getRed();
+			break;
+
+		case 'g':
+			X = secretPixels[i/3].getGreen();
+			break;
+
+		case 'b':
+			X = secretPixels[i/3].getBlue();
+			break;
+		}
+
+		r = r | (X >> 6 & 3);
+		g = g | (X >> 4 & 3);
+	    b = b | (X >> 2 & 3);
+	  
+		return new Color(r, g, b);
+
+	}
+	
+	
+	private void findImage() throws IOException {
+		
+		postContainerImage = new MyImage(resultFileName);
+		postContainerPixels = postContainerImage.getPixels();
+		
+		BufferedImage secretResult = new BufferedImage(secretWidth, secretHeight, BufferedImage.TYPE_INT_RGB);
+		postSecretPixels = new Color[secretWidth * secretHeight];
+		
+		
+		for(int i = 0; i < postSecretPixels.length; i++) {
+			
+			int r = getColor(i * 3);
+			int g = getColor(i * 3+1);
+			int b = getColor(i * 3+2);
+			
+			postSecretPixels[i] = new Color(r, g, b); 
+			
+		}
+		
+		saveImage(postSecretPixels, secretResult, secretResultFileName);
+		
+		
+	}
+	
+	private int getColor(int i) {
+		
+		int r = postContainerPixels[i].getRed();
+		int g = postContainerPixels[i].getGreen();
+		int b = postContainerPixels[i].getBlue();
+		
+		r = r & 3;
+		g = g & 3;
+		b = b & 3;
+		
+		r = r << 6;
+		r = r | g << 4;
+		r = r | b << 2;
+	
+		
+		return r;
+	
+	}
+	
+	private void saveImage(Color[] pixels, BufferedImage image, String filename) throws IOException {
+
+		int k = 0;
+		for (int i = 0; i < image.getHeight(); i++) {
+			for (int j = 0; j < image.getWidth(); j++) {
+				//if (k < pixels.length) {
+					image.setRGB(j, i, pixels[k].getRGB());
+					k++;
+
+				//}
+			}
+
+		}
+
+		ImageIO.write(image, "bmp", new File(filename));
+
+	}
+	
+
+}

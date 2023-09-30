@@ -1,0 +1,4 @@
+INDEX VERSION 1.131+D:\JavaRainbow\kiss\.metadata\.plugins\org.eclipse.jdt.core
+3319418364.index
+2752845517.index
+1865797976.index

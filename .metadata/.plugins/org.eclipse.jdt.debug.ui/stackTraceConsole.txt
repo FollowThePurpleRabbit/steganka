@@ -1,0 +1,3 @@
+int r = secretPixels[i].getRed() - postSecretPixels[i+1].getRed();
+		int g = secretPixels[i].getGreen() - postSecretPixels[i+1].getGreen();
+		int b = secretPixels[i].getBlue() - postSecretPixels[i+1].getBlue();
